@@ -1,0 +1,38 @@
+# Docker
+*.log
+*.pid
+*.sock
+.docker/
+*.tmp
+
+# Data
+data/
+backup/
+*.env
+*.secret
+**/secrets/
+
+# Reports
+reports/**/*.pdf
+reports/**/*.docx
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.pyc
+
+# Wordlists (large files)
+wordlists/rockyou.txt
+wordlists/*.gz
+
+# Kali
+.bash_history
+.zsh_history
+.idea/
+.vscode/
+
+# Temp
+tmp/
+temp/

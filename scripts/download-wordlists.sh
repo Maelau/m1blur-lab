@@ -13,29 +13,35 @@ echo -e "${BLUE}└────────────────────�
 
 # Create wordlists directory if it doesn't exist
 mkdir -p "$(dirname "$0")/../wordlists"
-cd "$(dirname "$0")/../wordlists"
+cd "$(dirname "$0")/../wordlists" || exit
 
 # Function to download with progress
 download() {
     local url=$1
     local output=$2
     echo -ne "${YELLOW}   Downloading $output...${NC}"
+    
+    # Try with progress first
     if wget -q --show-progress "$url" -O "$output" 2>&1; then
         echo -e "${GREEN} Done ✅${NC}"
-    else
-        # Try without progress if wget version doesn't support --show-progress
-        if wget -q "$url" -O "$output" 2>/dev/null; then
-            echo -e "${GREEN} Done ✅${NC}"
-        else
-            echo -e "${RED} Failed ❌${NC}"
-        fi
+        return 0
     fi
+    
+    # Try without progress
+    if wget -q "$url" -O "$output" 2>/dev/null; then
+        echo -e "${GREEN} Done ✅${NC}"
+        return 0
+    fi
+    
+    # If both fail
+    echo -e "${RED} Failed ❌${NC}"
+    return 1
 }
 
 echo -e "${BLUE}📦 Downloading essential wordlists...${NC}"
 echo ""
 
-# SecLists (small samples)
+# Discovery wordlists
 download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/common.txt" "common.txt"
 download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/directory-list-2.3-small.txt" "dir-small.txt"
 download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/DNS/subdomains-top1million-5000.txt" "subdomains.txt"
@@ -45,15 +51,23 @@ download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Fuzzi
 download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Fuzzing/SQLi/Generic-SQLi.txt" "sqli.txt"
 download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Fuzzing/XSS/XSS-BruteLogic.txt" "xss.txt"
 
+# Additional useful wordlists
+download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/10-million-password-list-top-100.txt" "top100-passwords.txt"
+download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Usernames/top-usernames-shortlist.txt" "top-usernames.txt"
+download "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/raft-small-words.txt" "raft-small.txt"
+
 # Passwords
-echo -e "${YELLOW}   Note: rockyou.txt is large (134MB). Download?${NC}"
+echo ""
+echo -e "${YELLOW}⚠️  Note: rockyou.txt is large (134MB).${NC}"
 read -p "   Download rockyou.txt? (y/N): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${BLUE}   Downloading rockyou.txt (this may take a while)...${NC}"
     download "https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt" "rockyou.txt"
 fi
 
 # Create custom small wordlist
+echo ""
 echo -e "${BLUE}📝 Creating custom wordlist...${NC}"
 cat > custom.txt << 'EOL'
 admin
@@ -86,14 +100,45 @@ hello
 secret
 changeme
 administrator
+ubuntu
+debian
+centos
+redhat
+kali
+metasploitable
+ftp
+ssh
+telnet
+http
+https
+smb
 EOL
 echo -e "${GREEN}   custom.txt created ✅${NC}"
 
 # Show results
 echo ""
 echo -e "${GREEN}📊 Wordlists downloaded:${NC}"
-ls -lh | awk '{print "   " $9 " (" $5 ")"}'
+echo -e "${BLUE}──────────────────────────────${NC}"
+
+if [ "$(ls -A .)" ]; then
+    ls -lh | grep -v total | while read -r line; do
+        size=$(echo "$line" | awk '{print $5}')
+        name=$(echo "$line" | awk '{print $9}')
+        if [ -f "$name" ] && [ "$name" != "" ]; then
+            echo "   $name ($size)"
+        fi
+    done
+else
+    echo "   No files downloaded"
+fi
 
 echo ""
 echo -e "${GREEN}✅ Download complete!${NC}"
 echo -e "${BLUE}📁 Location: $(pwd)${NC}"
+
+# Instructions
+echo ""
+echo -e "${YELLOW}💡 Usage examples:${NC}"
+echo "   gobuster dir -u http://target -w wordlists/common.txt"
+echo "   ffuf -u http://target/FUZZ -w wordlists/raft-small.txt"
+echo "   hydra -l admin -P wordlists/top100-passwords.txt ssh://target"

@@ -5,7 +5,7 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.22.0.0/16
 
 services:
   metasploitable:
@@ -13,7 +13,7 @@ services:
     container_name: m1blur-metasploitable
     networks:
       lab-network:
-        ipv4_address: 172.20.0.20
+        ipv4_address: 172.22.0.20
     restart: unless-stopped
     volumes:
       - ../data/shared:/shared
@@ -24,7 +24,7 @@ services:
     container_name: m1blur-dvwa
     networks:
       lab-network:
-        ipv4_address: 172.20.0.30
+        ipv4_address: 172.22.0.30
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
       - MYSQL_DATABASE=dvwa
@@ -41,7 +41,7 @@ services:
     container_name: m1blur-dvwa-db
     networks:
       lab-network:
-        ipv4_address: 172.20.0.31
+        ipv4_address: 172.22.0.31
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
       - MYSQL_DATABASE=dvwa

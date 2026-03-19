@@ -1,0 +1,55 @@
+version: '3.8'
+
+networks:
+  lab-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+services:
+  metasploitable:
+    image: tleemcjr/metasploitable2:latest
+    container_name: m1blur-metasploitable
+    networks:
+      lab-network:
+        ipv4_address: 172.20.0.20
+    restart: unless-stopped
+    volumes:
+      - ../data/shared:/shared
+      - ../data/metasploitable:/data
+
+  dvwa:
+    image: vulnerables/web-dvwa:latest
+    container_name: m1blur-dvwa
+    networks:
+      lab-network:
+        ipv4_address: 172.20.0.30
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=dvwa
+    depends_on:
+      - dvwa-db
+    restart: unless-stopped
+    volumes:
+      - ../data/shared:/shared
+
+  dvwa-db:
+    image: mysql:5.7
+    container_name: m1blur-dvwa-db
+    networks:
+      lab-network:
+        ipv4_address: 172.20.0.31
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=dvwa
+    volumes:
+      - dvwa-data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  dvwa-data:

